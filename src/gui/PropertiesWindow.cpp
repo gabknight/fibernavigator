@@ -816,6 +816,35 @@ void PropertiesWindow::OnColorWithTorsion( wxCommandEvent& WXUNUSED(event) )
     }
 }
 
+///////////////////////////////////////////////////////////////////////////
+// This function will be triggered when the user click on the display min/max cross section
+// button that is located in the m_fibersInfoSizer.
+///////////////////////////////////////////////////////////////////////////
+void PropertiesWindow::OnColorWithLength( wxCommandEvent& WXUNUSED(event) )
+{
+    Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnColorWithLength" ), LOGLEVEL_DEBUG );
+
+    long index = MyApp::frame->getCurrentListIndex();
+    if( -1 != index )
+    {
+        Fibers* pFibers = DatasetManager::getInstance()->getSelectedFibers( MyApp::frame->m_pListCtrl->GetItem( index ) );
+        if( pFibers != NULL )
+        {
+            if( pFibers->getColorationMode() != LENGTH_COLOR )
+            {
+                pFibers->setColorationMode( LENGTH_COLOR );
+                pFibers->updateFibersColors();
+                pFibers->updateColorationMode();
+            }
+        }
+    }
+    else
+    {
+        Logger::getInstance()->print( wxT( "PropertiesWindow::OnColorWithTorsion - Current index is -1" ), LOGLEVEL_ERROR );
+    }
+}
+
+
 void PropertiesWindow::OnNormalColoring( wxCommandEvent& WXUNUSED(event) )
 {
     Logger::getInstance()->print( wxT( "Event triggered - PropertiesWindow::OnNormalColoring" ), LOGLEVEL_DEBUG );

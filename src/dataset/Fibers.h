@@ -168,6 +168,7 @@ private:
     void            colorWithCurvature(     float *pColorData );
     void            colorWithDistance(      float *pColorData );
     void            colorWithMinDistance(   float *pColorData );
+    void            colorWithLength(        float *pColorData );
     void            colorWithConstantColor( float *pColorData );
 
     void            toggleEndianess();
@@ -249,6 +250,7 @@ private:
     wxRadioButton  *m_pRadCurvature;
     wxRadioButton  *m_pRadTorsion;
     wxRadioButton  *m_pRadConstant;
+    wxRadioButton  *m_pRadLength;
 };
 
 #endif /* FIBERS_H_ */

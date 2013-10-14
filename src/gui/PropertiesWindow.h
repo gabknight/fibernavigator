@@ -84,6 +84,7 @@ public:
     void OnColorWithCurvature               ( wxCommandEvent& event );
     void OnNormalColoring                   ( wxCommandEvent& event );
     void OnColorWithTorsion                 ( wxCommandEvent& event );
+    void OnColorWithLength                  ( wxCommandEvent& event );
     void OnColorWithConstantColor           ( wxCommandEvent& event );
     void OnSelectConstantColor              ( wxCommandEvent& event );
     void ColorFibers();

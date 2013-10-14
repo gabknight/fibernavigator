@@ -27,6 +27,7 @@
 #include <cfloat>
 #include <cmath>
 #include <fstream>
+#include <math.h>
 using std::ofstream;
 
 #include <limits>
@@ -103,7 +104,8 @@ Fibers::Fibers()
     m_pRadMinDistanceAnchoring( NULL ),
     m_pRadCurvature( NULL ),
     m_pRadTorsion( NULL ),
-    m_pRadConstant( NULL )
+    m_pRadConstant( NULL ),    
+    m_pRadLength( NULL )
 {
     m_bufferObjects = new GLuint[3];
 }
@@ -1700,6 +1702,10 @@ void Fibers::updateFibersColors()
         {
             colorWithConstantColor( pColorData );
         }
+        else if( m_fiberColorationMode == LENGTH_COLOR )
+        {
+            colorWithLength( pColorData );
+        }
 
         if( SceneManager::getInstance()->isUsingVBO() )
         {
@@ -2080,6 +2086,11 @@ void Fibers::colorWithMinDistance( float *pColorData )
             m_localizedAlpha[index + j] = theAlpha;
         }
     }
+}
+
+void Fibers::colorWithLength( float *pColorData )
+{
+    
 }
 
 void Fibers::colorWithConstantColor( float *pColorData )
@@ -3050,7 +3061,34 @@ void Fibers::drawSortedLines()
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     glBegin( GL_LINES );
 
-    if( m_fiberColorationMode == MINDISTANCE_COLOR )
+    if( m_fiberColorationMode == LENGTH_COLOR )
+    {
+        int i = 0;
+        //Logger::getInstance()->print( wxT( "HERE" ), LOGLEVEL_ERROR );
+        for( int c = 0; c < nbSnipplets; ++c )
+        {
+            
+            i = c;
+            int idx  = pLineIds[pSnippletSort[i] << 1];
+            int idx3 = idx * 3;
+            int id2  = pLineIds[( pSnippletSort[i] << 1 ) + 1];
+            int id23 = id2 * 3;
+
+            float transp = (m_length[idx]-m_minLength)/m_maxLength;
+            transp = (sqrt(transp));
+            float transp1 = (m_length[id2]-m_minLength)/m_maxLength;
+            transp1 = (sqrt(transp1));
+            //transp = 0;
+
+            glColor4f(  pColors[idx3 + 0],       pColors[idx3 + 1],       pColors[idx3 + 2],   transp );
+            glNormal3f( pNormals[idx3 + 0],      pNormals[idx3 + 1],      pNormals[idx3 + 2] );
+            glVertex3f( m_pointArray[idx3 + 0],  m_pointArray[idx3 + 1],  m_pointArray[idx3 + 2] );
+            glColor4f(  pColors[id23 + 0],       pColors[id23 + 1],       pColors[id23 + 2],   transp1 );
+            glNormal3f( pNormals[id23 + 0],      pNormals[id23 + 1],      pNormals[id23 + 2] );
+            glVertex3f( m_pointArray[id23 + 0],  m_pointArray[id23 + 1],  m_pointArray[id23 + 2] );
+        }
+    }
+    else if( m_fiberColorationMode == MINDISTANCE_COLOR)
     {
         int i = 0;
 
@@ -3463,6 +3501,7 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
     m_pRadMinDistanceAnchoring = new wxRadioButton( pParent, wxID_ANY, wxT( "Min Dist. Anchoring" ) );
     m_pRadCurvature            = new wxRadioButton( pParent, wxID_ANY, wxT( "Curvature" ) );
     m_pRadTorsion              = new wxRadioButton( pParent, wxID_ANY, wxT( "Torsion" ) );
+    m_pRadLength               = new wxRadioButton( pParent, wxID_ANY, wxT( "Length" ) );
 #endif
     
     m_pRadConstant             = new wxRadioButton( pParent, wxID_ANY, wxT( "Constant" ) );
@@ -3510,6 +3549,7 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
     pBoxColoringRadios->Add( m_pRadMinDistanceAnchoring, 0, wxALIGN_LEFT | wxALL, 1 );
     pBoxColoringRadios->Add( m_pRadCurvature,            0, wxALIGN_LEFT | wxALL, 1 );
     pBoxColoringRadios->Add( m_pRadTorsion,              0, wxALIGN_LEFT | wxALL, 1 );
+    pBoxColoringRadios->Add( m_pRadLength,               0, wxALIGN_LEFT | wxALL, 1 );
 #endif
     
     pBoxColoringRadios->Add( m_pRadConstant,             0, wxALIGN_LEFT | wxALL, 1 );
@@ -3538,6 +3578,8 @@ void Fibers::createPropertiesSizer( PropertiesWindow *pParent )
     pParent->Connect( m_pRadMinDistanceAnchoring->GetId(),       wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnListMenuMinDistance ) );
     pParent->Connect( m_pRadTorsion->GetId(),                    wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnColorWithTorsion ) );
     pParent->Connect( m_pRadCurvature->GetId(),                  wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnColorWithCurvature ) );
+    pParent->Connect( m_pRadLength->GetId(),                     wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnColorWithLength ) );
+
 #endif
     
     pParent->Connect( m_pRadConstant->GetId(),                   wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( PropertiesWindow::OnColorWithConstantColor ) );
@@ -3568,6 +3610,7 @@ void Fibers::updatePropertiesSizer()
     m_pRadMinDistanceAnchoring->Enable( getShowFS() );
     m_pRadCurvature->Enable(            getShowFS() );
     m_pRadTorsion->Enable(              getShowFS() );
+    m_pRadLength->Enable(               getShowFS() );
 #endif
     
     m_pRadConstant->Enable(             getShowFS() );
@@ -3594,6 +3637,7 @@ void Fibers::updatePropertiesSizer()
         m_pRadMinDistanceAnchoring->SetValue( m_fiberColorationMode == MINDISTANCE_COLOR );
         m_pRadTorsion->SetValue( m_fiberColorationMode == TORSION_COLOR );
         m_pRadCurvature->SetValue( m_fiberColorationMode == CURVATURE_COLOR );
+        m_pRadLength->SetValue( m_fiberColorationMode == LENGTH_COLOR );
 #endif
         
         m_pRadConstant->SetValue( m_fiberColorationMode == CONSTANT_COLOR );
@@ -3811,7 +3855,7 @@ void Fibers::setShader()
         ShaderHelper::getInstance()->getFibersShader()->bind();
         ShaderHelper::getInstance()->setFiberShaderVars();
         ShaderHelper::getInstance()->getFibersShader()->setUniInt( "useTex", !pDsInfo->getUseTex() );
-//         ShaderHelper::getInstance()->getFibersShader()->setUniInt( "useColorMap", SceneManager::getInstance()->getColorMap() );
+        ShaderHelper::getInstance()->getFibersShader()->setUniInt( "useColorMap", SceneManager::getInstance()->getColorMap() );
         ShaderHelper::getInstance()->getFibersShader()->setUniInt( "useOverlay", pDsInfo->getShowFS() );
     }
 }

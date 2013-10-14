@@ -133,7 +133,8 @@ enum FibersColorationMode
     DISTANCE_COLOR      = 3,
     MINDISTANCE_COLOR   = 4,
     CUSTOM_COLOR        = 5,    // This one is used only for the mean fiber. Should be moved.
-    CONSTANT_COLOR      = 6
+    CONSTANT_COLOR      = 6,
+    LENGTH_COLOR        = 7
 };
 
 ///////////////////////////////////////////////////////////////////////////
